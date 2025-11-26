@@ -1,0 +1,2853 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FriendlyStay - Booking Made Personal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+      .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-slideUp {
+        animation: slideUp 0.4s ease-out;
+      }
+      .modal-backdrop {
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+      }
+
+      /* Amenity Icon Tooltips */
+      .amenity-icon-wrapper {
+        position: relative;
+        display: inline-block;
+        margin: 0 2px;
+      }
+
+      .amenity-icon {
+        cursor: help;
+        display: inline-block;
+        transition: transform 0.2s ease;
+      }
+
+      .amenity-icon:hover,
+      .amenity-icon:focus {
+        transform: scale(1.1);
+        outline: none;
+      }
+
+      .amenity-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(30, 30, 30, 0.95);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out,
+          transform 0.2s ease-in-out;
+        pointer-events: none;
+      }
+
+      .amenity-tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: rgba(30, 30, 30, 0.95) transparent transparent transparent;
+      }
+
+      .amenity-icon-wrapper:hover .amenity-tooltip,
+      .amenity-icon:focus + .amenity-tooltip {
+        visibility: visible;
+        opacity: 1;
+        transform: translateX(-50%) translateY(-3px);
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50"
+  >
+    <!-- Header -->
+    <div class="bg-white shadow-sm border-b-2 border-purple-100">
+      <div class="max-w-4xl mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div
+              class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-2xl"
+            >
+              ✨
+            </div>
+            <div>
+              <h1
+                class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
+              >
+                FriendlyStay
+              </h1>
+              <p class="text-sm text-gray-500">Booking made personal</p>
+            </div>
+          </div>
+          <div class="text-3xl">😊</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 py-6">
+      <!-- Mira's Avatar Card -->
+      <div
+        class="bg-white rounded-2xl shadow-lg p-6 mb-6 border-2 border-purple-200"
+      >
+        <div class="flex items-start gap-4">
+          <div
+            class="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-3xl flex-shrink-0 animate-pulse"
+          >
+            😊
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <h2 class="text-xl font-bold text-purple-600">Mira</h2>
+              <span class="text-yellow-500">✨</span>
+            </div>
+            <p class="text-gray-600 text-sm">Your Personal Travel Guide</p>
+            <div
+              class="mt-2 inline-block px-3 py-1 bg-purple-100 rounded-full text-xs text-purple-700 font-medium"
+            >
+              🟢 Online & Ready to Help!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div
+        class="bg-white rounded-2xl shadow-lg p-6 mb-6 min-h-[400px] max-h-[600px] overflow-y-auto border-2 border-purple-100"
+      >
+        <div id="messagesContainer" class="space-y-4">
+          <!-- Messages will be added here -->
+        </div>
+
+        <!-- Hotel Cards Container (will be shown between messages) -->
+        <div id="hotelsContainer" class="space-y-4 mt-6 hidden"></div>
+
+        <!-- Messages after hotel selection -->
+        <div id="afterHotelsContainer" class="space-y-4 mt-4"></div>
+      </div>
+
+      <!-- Input Area -->
+      <div
+        class="bg-white rounded-2xl shadow-lg p-6 border-2 border-purple-200"
+      >
+        <div id="inputArea"></div>
+        <div
+          id="helperText"
+          class="text-center text-gray-500 text-sm mt-4 hidden"
+        >
+          👆 Click on any hotel above to select it!
+        </div>
+      </div>
+
+      <!-- Social Cues Footer -->
+      <div class="mt-6 text-center">
+        <div
+          class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-md text-sm text-gray-600"
+        >
+          <span>👍</span>
+          <span>Mira is here to make booking fun and easy! 💜</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div
+      id="bookingModal"
+      class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"
+    >
+      <div
+        class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slideUp"
+      >
+        <div
+          class="sticky top-0 bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-t-3xl"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-2xl font-bold flex items-center gap-2">
+                <span>🎉</span>
+                <span id="modalTitle">Finalize Your Booking</span>
+              </h2>
+              <p class="text-purple-100 text-sm mt-1" id="modalSubtitle">
+                Let's get everything set up for your stay!
+              </p>
+            </div>
+            <button
+              onclick="closeModal()"
+              class="text-white hover:bg-white/20 rounded-full p-2 transition-all"
+            >
+              <svg
+                class="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="modalContent" class="p-6">
+          <!-- Content will be inserted here -->
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let step = 0;
+      let destination = "";
+      let checkIn = "";
+      let checkOut = "";
+      let selectedHotel = null;
+      let compareMode = false;
+      let hotelsToCompare = [];
+
+      // Filter state
+      let filters = {
+        maxPrice: null,
+        minRating: null,
+        amenities: [],
+        category: null,
+      };
+
+      const allHotels = [
+        {
+          id: 1,
+          name: "Cozy Corner Inn",
+          price: 89,
+          rating: 4.5,
+          image: "🏨",
+          description: "Perfect for budget travelers who love comfort!",
+          type: "budget",
+          reviews: 234,
+          amenities: ["wifi", "parking", "breakfast"],
+          distance: "2.5 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Sarah M.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Such a cozy place! Great value for money and the staff was incredibly friendly.",
+            },
+            {
+              name: "John D.",
+              rating: 4,
+              date: "1 month ago",
+              comment:
+                "Clean rooms, comfortable beds. Perfect for a budget stay.",
+            },
+            {
+              name: "Emma L.",
+              rating: 5,
+              date: "3 weeks ago",
+              comment: "Loved the breakfast! The location is convenient too.",
+            },
+          ],
+        },
+        {
+          id: 2,
+          name: "Sunset Paradise Resort",
+          price: 199,
+          rating: 4.8,
+          image: "🌅",
+          description: "Luxury meets relaxation with stunning views",
+          type: "luxury",
+          reviews: 567,
+          amenities: ["wifi", "pool", "gym", "spa", "breakfast"],
+          distance: "5 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Michael R.",
+              rating: 5,
+              date: "1 week ago",
+              comment:
+                "Absolutely stunning! The spa facilities are world-class and the sunset views are breathtaking.",
+            },
+            {
+              name: "Lisa K.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Perfect luxury getaway. Staff went above and beyond to make our stay memorable.",
+            },
+            {
+              name: "David P.",
+              rating: 4,
+              date: "1 month ago",
+              comment:
+                "Beautiful resort with amazing amenities. Slightly pricey but worth it for special occasions.",
+            },
+          ],
+        },
+        {
+          id: 3,
+          name: "Downtown Business Hub",
+          price: 145,
+          rating: 4.6,
+          image: "🏢",
+          description:
+            "Great for work travelers, right in the heart of the city",
+          type: "business",
+          reviews: 421,
+          amenities: ["wifi", "parking", "gym"],
+          distance: "0.5 km from city center",
+          availability: "Limited",
+          userReviews: [
+            {
+              name: "James T.",
+              rating: 5,
+              date: "3 days ago",
+              comment:
+                "Perfect for business trips! Fast WiFi, great meeting rooms, and central location.",
+            },
+            {
+              name: "Rachel H.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Convenient location and professional atmosphere. Everything a business traveler needs.",
+            },
+            {
+              name: "Tom B.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Excellent hotel for work. The business center is top-notch.",
+            },
+          ],
+        },
+        {
+          id: 4,
+          name: "Seaside Escape Villa",
+          price: 175,
+          rating: 4.7,
+          image: "🏖️",
+          description: "Wake up to ocean waves and sandy beaches!",
+          type: "luxury",
+          reviews: 389,
+          amenities: ["wifi", "pool", "beachfront", "breakfast"],
+          distance: "8 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Amanda S.",
+              rating: 5,
+              date: "5 days ago",
+              comment:
+                "Beach lovers paradise! Direct beach access and the sound of waves is so relaxing.",
+            },
+            {
+              name: "Chris M.",
+              rating: 4,
+              date: "2 weeks ago",
+              comment:
+                "Beautiful seaside location. Perfect for a romantic getaway.",
+            },
+            {
+              name: "Jennifer L.",
+              rating: 5,
+              date: "3 weeks ago",
+              comment:
+                "Absolutely loved it! Waking up to ocean views every day was incredible.",
+            },
+          ],
+        },
+        {
+          id: 5,
+          name: "Mountain View Lodge",
+          price: 120,
+          rating: 4.4,
+          image: "🏔️",
+          description: "Breathtaking mountain views and cozy fireplaces",
+          type: "scenic",
+          reviews: 298,
+          amenities: ["wifi", "parking", "fireplace"],
+          distance: "15 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Mark D.",
+              rating: 5,
+              date: "1 week ago",
+              comment:
+                "Amazing mountain views! Perfect for a peaceful retreat away from the city.",
+            },
+            {
+              name: "Susan W.",
+              rating: 4,
+              date: "2 weeks ago",
+              comment:
+                "Cozy and charming. The fireplace made the evenings so comfortable.",
+            },
+            {
+              name: "Peter J.",
+              rating: 4,
+              date: "1 month ago",
+              comment:
+                "Great location for hiking enthusiasts. Beautiful scenery all around.",
+            },
+          ],
+        },
+        {
+          id: 6,
+          name: "Urban Chic Boutique",
+          price: 135,
+          rating: 4.6,
+          image: "🎨",
+          description: "Trendy design meets modern amenities",
+          type: "boutique",
+          reviews: 412,
+          amenities: ["wifi", "breakfast", "art"],
+          distance: "1.5 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Sophie A.",
+              rating: 5,
+              date: "4 days ago",
+              comment:
+                "Such stylish and unique design! Every corner is Instagram-worthy.",
+            },
+            {
+              name: "Ryan K.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Trendy hotel with great attention to detail. Loved the artistic touches.",
+            },
+            {
+              name: "Emily R.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Best boutique hotel I've stayed at! Personalized service and beautiful aesthetics.",
+            },
+          ],
+        },
+        {
+          id: 7,
+          name: "Family Fun Resort",
+          price: 165,
+          rating: 4.5,
+          image: "🎡",
+          description: "Kids love it here! Pool, games, and activities galore",
+          type: "family",
+          reviews: 531,
+          amenities: ["wifi", "pool", "kids", "breakfast", "parking"],
+          distance: "6 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Karen P.",
+              rating: 5,
+              date: "3 days ago",
+              comment:
+                "Perfect for families! The kids had a blast with all the activities and pool games.",
+            },
+            {
+              name: "Robert F.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Great family-friendly resort. Lots of entertainment for children of all ages.",
+            },
+            {
+              name: "Michelle B.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Our kids didn't want to leave! Amazing facilities and super family-oriented staff.",
+            },
+          ],
+        },
+        {
+          id: 8,
+          name: "The Quiet Retreat",
+          price: 95,
+          rating: 4.3,
+          image: "🌲",
+          description: "Peaceful sanctuary away from the hustle",
+          type: "budget",
+          reviews: 187,
+          amenities: ["wifi", "parking"],
+          distance: "12 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Linda G.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "So peaceful and quiet. Perfect for disconnecting and relaxing.",
+            },
+            {
+              name: "George H.",
+              rating: 4,
+              date: "2 weeks ago",
+              comment:
+                "Great value for a quiet getaway. Simple but comfortable.",
+            },
+            {
+              name: "Nancy C.",
+              rating: 5,
+              date: "3 weeks ago",
+              comment:
+                "Exactly what I needed - peace and tranquility away from city noise.",
+            },
+          ],
+        },
+        {
+          id: 9,
+          name: "Historic Grand Hotel",
+          price: 210,
+          rating: 4.9,
+          image: "🏛️",
+          description: "Classic elegance with world-class service",
+          type: "luxury",
+          reviews: 672,
+          amenities: ["wifi", "spa", "gym", "pool", "breakfast", "valet"],
+          distance: "1 km from city center",
+          availability: "Limited",
+          userReviews: [
+            {
+              name: "Victoria S.",
+              rating: 5,
+              date: "2 days ago",
+              comment:
+                "Absolutely magnificent! The historic architecture combined with modern luxury is perfection.",
+            },
+            {
+              name: "Charles W.",
+              rating: 5,
+              date: "1 week ago",
+              comment:
+                "World-class service and stunning interiors. Every detail is impeccable.",
+            },
+            {
+              name: "Elizabeth M.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "A truly grand experience! Felt like royalty throughout our stay.",
+            },
+          ],
+        },
+        {
+          id: 10,
+          name: "Smart Stay Suites",
+          price: 110,
+          rating: 4.4,
+          image: "💼",
+          description: "Tech-enabled rooms perfect for digital nomads",
+          type: "business",
+          reviews: 345,
+          amenities: ["wifi", "tech", "workspace"],
+          distance: "2 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Alex N.",
+              rating: 5,
+              date: "3 days ago",
+              comment:
+                "Perfect for remote work! Fast WiFi, smart room controls, and great workspace.",
+            },
+            {
+              name: "Jessica T.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Digital nomad's dream. All the tech amenities you could need.",
+            },
+            {
+              name: "Brian L.",
+              rating: 4,
+              date: "2 weeks ago",
+              comment:
+                "Great value for tech-savvy travelers. Everything works seamlessly.",
+            },
+          ],
+        },
+        {
+          id: 11,
+          name: "Lakeside Serenity Inn",
+          price: 155,
+          rating: 4.7,
+          image: "🌊",
+          description: "Tranquil lakefront views and water activities",
+          type: "scenic",
+          reviews: 423,
+          amenities: ["wifi", "lake", "breakfast", "parking"],
+          distance: "10 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Patricia D.",
+              rating: 5,
+              date: "5 days ago",
+              comment:
+                "Gorgeous lake views! Spent mornings kayaking and evenings by the water.",
+            },
+            {
+              name: "Daniel K.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Beautiful and serene location. Perfect for nature lovers.",
+            },
+            {
+              name: "Laura M.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "So relaxing! The lakefront location is absolutely stunning.",
+            },
+          ],
+        },
+        {
+          id: 12,
+          name: "Garden Paradise Hotel",
+          price: 138,
+          rating: 4.5,
+          image: "🌺",
+          description: "Lush gardens and peaceful outdoor spaces",
+          type: "boutique",
+          reviews: 367,
+          amenities: ["wifi", "garden", "breakfast"],
+          distance: "4 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Maria V.",
+              rating: 5,
+              date: "4 days ago",
+              comment:
+                "The gardens are absolutely beautiful! Such a peaceful oasis.",
+            },
+            {
+              name: "Andrew C.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Lovely hotel with beautiful landscaping. Great for morning walks.",
+            },
+            {
+              name: "Catherine R.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Garden lovers will adore this place! So well-maintained and charming.",
+            },
+          ],
+        },
+        {
+          id: 13,
+          name: "Executive Tower Suites",
+          price: 185,
+          rating: 4.8,
+          image: "🏙️",
+          description: "Premium business amenities with city skyline views",
+          type: "business",
+          reviews: 512,
+          amenities: ["wifi", "gym", "workspace", "valet", "breakfast"],
+          distance: "0.8 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "William H.",
+              rating: 5,
+              date: "2 days ago",
+              comment:
+                "Best business hotel! Incredible city views and top-tier amenities.",
+            },
+            {
+              name: "Margaret L.",
+              rating: 5,
+              date: "1 week ago",
+              comment:
+                "Perfect for executive stays. Professional service and excellent facilities.",
+            },
+            {
+              name: "Richard S.",
+              rating: 4,
+              date: "2 weeks ago",
+              comment:
+                "Great location and impressive skyline views from the room.",
+            },
+          ],
+        },
+        {
+          id: 14,
+          name: "Beachfront Bungalows",
+          price: 205,
+          rating: 4.9,
+          image: "🏝️",
+          description: "Private beach access and tropical paradise vibes",
+          type: "luxury",
+          reviews: 698,
+          amenities: ["wifi", "beachfront", "pool", "spa", "breakfast"],
+          distance: "12 km from city center",
+          availability: "Limited",
+          userReviews: [
+            {
+              name: "Steven G.",
+              rating: 5,
+              date: "3 days ago",
+              comment:
+                "Paradise on earth! Private beach, amazing bungalows, and incredible service.",
+            },
+            {
+              name: "Barbara W.",
+              rating: 5,
+              date: "1 week ago",
+              comment:
+                "Dream vacation spot! The tropical setting and privacy are unmatched.",
+            },
+            {
+              name: "Anthony M.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Best beach resort ever! Every detail is perfect for a tropical getaway.",
+            },
+          ],
+        },
+        {
+          id: 15,
+          name: "Budget Express Hotel",
+          price: 75,
+          rating: 4.2,
+          image: "🛏️",
+          description: "Clean, comfortable, and wallet-friendly",
+          type: "budget",
+          reviews: 289,
+          amenities: ["wifi", "parking"],
+          distance: "3 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Kevin J.",
+              rating: 4,
+              date: "4 days ago",
+              comment:
+                "Great value! Clean rooms and friendly staff. Perfect for budget travelers.",
+            },
+            {
+              name: "Dorothy P.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Simple but comfortable. Exactly what I needed for a short stay.",
+            },
+            {
+              name: "Frank R.",
+              rating: 4,
+              date: "2 weeks ago",
+              comment: "Can't beat the price! Clean and convenient location.",
+            },
+          ],
+        },
+        {
+          id: 16,
+          name: "Artisan Loft Hotel",
+          price: 142,
+          rating: 4.6,
+          image: "🎭",
+          description: "Unique artistic design in every corner",
+          type: "boutique",
+          reviews: 391,
+          amenities: ["wifi", "art", "breakfast"],
+          distance: "2.5 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Helen B.",
+              rating: 5,
+              date: "5 days ago",
+              comment:
+                "An art lover's dream! Every room is uniquely designed and beautiful.",
+            },
+            {
+              name: "Paul K.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Such creative and artistic atmosphere. Really stands out from typical hotels.",
+            },
+            {
+              name: "Sharon D.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Absolutely unique! The artistic touches make it so special and memorable.",
+            },
+          ],
+        },
+        {
+          id: 17,
+          name: "Adventure Base Camp",
+          price: 128,
+          rating: 4.5,
+          image: "⛺",
+          description: "Perfect for outdoor enthusiasts and explorers",
+          type: "scenic",
+          reviews: 456,
+          amenities: ["wifi", "parking", "hiking"],
+          distance: "18 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Jason M.",
+              rating: 5,
+              date: "6 days ago",
+              comment:
+                "Perfect base for outdoor adventures! Staff are knowledgeable about local trails.",
+            },
+            {
+              name: "Kimberly T.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Great for hikers and nature enthusiasts. Beautiful mountain location.",
+            },
+            {
+              name: "Christopher H.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Adventure seeker's paradise! Close to all the best hiking trails.",
+            },
+          ],
+        },
+        {
+          id: 18,
+          name: "Royal Palace Hotel",
+          price: 245,
+          rating: 4.9,
+          image: "👑",
+          description: "Experience royal treatment with impeccable service",
+          type: "luxury",
+          reviews: 834,
+          amenities: [
+            "wifi",
+            "spa",
+            "pool",
+            "gym",
+            "breakfast",
+            "valet",
+            "concierge",
+          ],
+          distance: "1.2 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Edward J.",
+              rating: 5,
+              date: "1 day ago",
+              comment:
+                "Absolutely royal experience! The service is impeccable and facilities are world-class.",
+            },
+            {
+              name: "Sandra F.",
+              rating: 5,
+              date: "4 days ago",
+              comment:
+                "Treated like royalty from check-in to checkout. Unforgettable luxury experience.",
+            },
+            {
+              name: "Timothy W.",
+              rating: 5,
+              date: "1 week ago",
+              comment:
+                "The pinnacle of luxury hotels! Worth every penny for a special occasion.",
+            },
+          ],
+        },
+        {
+          id: 19,
+          name: "Riverside Retreat",
+          price: 115,
+          rating: 4.4,
+          image: "🌉",
+          description: "Peaceful riverside location with nature trails",
+          type: "budget",
+          reviews: 312,
+          amenities: ["wifi", "parking", "river"],
+          distance: "7 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Betty L.",
+              rating: 4,
+              date: "5 days ago",
+              comment:
+                "Lovely riverside location. Perfect for morning walks along the water.",
+            },
+            {
+              name: "Gerald S.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Peaceful and affordable. Great value for a nature retreat.",
+            },
+            {
+              name: "Donna M.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "So relaxing! The sound of the river is incredibly soothing.",
+            },
+          ],
+        },
+        {
+          id: 20,
+          name: "Sky Tower Hotel",
+          price: 168,
+          rating: 4.7,
+          image: "🌃",
+          description: "Stunning panoramic views from high above",
+          type: "business",
+          reviews: 567,
+          amenities: ["wifi", "gym", "skybar", "breakfast"],
+          distance: "1.5 km from city center",
+          availability: "Available",
+          userReviews: [
+            {
+              name: "Joseph P.",
+              rating: 5,
+              date: "3 days ago",
+              comment:
+                "Breathtaking city views! The sky bar on the top floor is amazing.",
+            },
+            {
+              name: "Carol R.",
+              rating: 4,
+              date: "1 week ago",
+              comment:
+                "Impressive views and great location. Modern and comfortable rooms.",
+            },
+            {
+              name: "Kenneth T.",
+              rating: 5,
+              date: "2 weeks ago",
+              comment:
+                "Best views in the city! Watching the sunset from the room was spectacular.",
+            },
+          ],
+        },
+      ];
+
+      let displayedHotels = [];
+      let previouslyShownIds = [];
+
+      function scrollToBottom(force = false) {
+        // Only scroll for regular messages, not when showing hotels
+        if (!force) return;
+
+        const container = document.querySelector(".overflow-y-auto");
+        setTimeout(() => {
+          container.scrollTop = container.scrollHeight;
+        }, 100);
+      }
+
+      function addMessage(
+        sender,
+        text,
+        container = "messagesContainer",
+        shouldScroll = true
+      ) {
+        const messagesDiv = document.getElementById(container);
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `flex ${
+          sender === "user" ? "justify-end" : "justify-start"
+        } animate-fadeIn`;
+
+        if (sender === "assistant") {
+          messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-sm mr-2 flex-shrink-0">
+                        😊
+                    </div>
+                    <div class="max-w-[70%] px-4 py-3 rounded-2xl bg-gray-100 text-gray-800">
+                        ${text}
+                    </div>
+                `;
+        } else {
+          messageDiv.innerHTML = `
+                    <div class="max-w-[70%] px-4 py-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white">
+                        ${text}
+                    </div>
+                `;
+        }
+
+        messagesDiv.appendChild(messageDiv);
+        if (shouldScroll) {
+          scrollToBottom(true);
+        }
+      }
+
+      function applyFilters(hotels) {
+        return hotels.filter((hotel) => {
+          if (filters.maxPrice && hotel.price > filters.maxPrice) return false;
+          if (filters.minRating && hotel.rating < filters.minRating)
+            return false;
+          if (filters.category && hotel.type !== filters.category) return false;
+          if (filters.amenities.length > 0) {
+            const hasAllAmenities = filters.amenities.every(
+              (amenity) => hotel.amenities && hotel.amenities.includes(amenity)
+            );
+            if (!hasAllAmenities) return false;
+          }
+          return true;
+        });
+      }
+
+      function getRandomHotels(count = 3) {
+        // Apply filters first
+        let availableHotels = applyFilters(allHotels);
+
+        // Remove previously shown hotels
+        availableHotels = availableHotels.filter(
+          (h) => !previouslyShownIds.includes(h.id)
+        );
+
+        // If we've shown all hotels, reset the previously shown list
+        if (availableHotels.length < count) {
+          previouslyShownIds = [];
+          availableHotels = applyFilters(allHotels);
+        }
+
+        // Shuffle and pick random hotels
+        const shuffled = [...availableHotels].sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, Math.min(count, shuffled.length));
+
+        // Add to previously shown
+        previouslyShownIds.push(...selected.map((h) => h.id));
+
+        return selected;
+      }
+
+      function showHotels(isNewSet = false) {
+        const hotelsDiv = document.getElementById("afterHotelsContainer");
+
+        if (isNewSet) {
+          addMessage(
+            "assistant",
+            "Here are some fresh options I found just for you! 💫",
+            "afterHotelsContainer"
+          );
+        }
+
+        // Get 3 random unique hotels
+        const hotelsToShow = getRandomHotels(3);
+
+        if (hotelsToShow.length === 0) {
+          addMessage(
+            "assistant",
+            "Hmm, I couldn't find any hotels matching those criteria. Would you like to adjust your filters? 😊",
+            "afterHotelsContainer"
+          );
+          return;
+        }
+
+        // Add these hotels to our displayed list
+        displayedHotels = displayedHotels.concat(hotelsToShow);
+
+        hotelsToShow.forEach((hotel) => {
+          const hotelCard = document.createElement("div");
+          hotelCard.id = `hotel-${hotel.id}`;
+          hotelCard.className =
+            "border-2 rounded-xl p-4 transition-all hover:shadow-lg border-gray-200 hover:border-purple-300 mt-4 animate-fadeIn";
+
+          // Amenities display
+          const amenityIcons = {
+            wifi: "📶",
+            parking: "🅿️",
+            breakfast: "🍳",
+            pool: "🏊",
+            gym: "💪",
+            spa: "🧖",
+            beachfront: "🏖️",
+            kids: "👶",
+            fireplace: "🔥",
+            lake: "🌊",
+            garden: "🌸",
+            art: "🎨",
+            tech: "💻",
+            workspace: "🖥️",
+            valet: "🚗",
+            concierge: "🎩",
+            skybar: "🍸",
+            river: "🌊",
+            hiking: "🥾",
+          };
+
+          const amenityNames = {
+            wifi: "Free Wi-Fi",
+            parking: "Parking Available",
+            breakfast: "Free Breakfast",
+            pool: "Swimming Pool",
+            gym: "Fitness Center",
+            spa: "Spa Services",
+            beachfront: "Beachfront Access",
+            kids: "Kid-Friendly",
+            fireplace: "Fireplace",
+            lake: "Lake Access",
+            garden: "Garden",
+            art: "Art Gallery",
+            tech: "Tech Amenities",
+            workspace: "Work Desk / Co-Working Friendly",
+            valet: "Valet Parking",
+            concierge: "Concierge Service",
+            skybar: "Sky Bar",
+            river: "River View",
+            hiking: "Hiking Trails",
+          };
+
+          let amenitiesHTML = "";
+          if (hotel.amenities) {
+            amenitiesHTML = hotel.amenities
+              .slice(0, 4)
+              .map(
+                (a) => `
+                        <span class="amenity-icon-wrapper">
+                            <span class="amenity-icon" tabindex="0">${
+                              amenityIcons[a] || "✓"
+                            }</span>
+                            <span class="amenity-tooltip">${
+                              amenityNames[a] || a
+                            }</span>
+                        </span>
+                    `
+              )
+              .join("");
+          }
+
+          // Availability badge
+          let availabilityBadge = "";
+          if (hotel.availability === "Available") {
+            availabilityBadge =
+              '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">✓ Available</span>';
+          } else if (hotel.availability === "Limited") {
+            availabilityBadge =
+              '<span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">⚠️ Limited</span>';
+          } else {
+            availabilityBadge =
+              '<span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">✗ Sold Out</span>';
+          }
+
+          hotelCard.innerHTML = `
+                    <div class="flex items-start gap-4">
+                        ${
+                          compareMode
+                            ? `
+                            <input type="checkbox" 
+                                   id="compare-${hotel.id}" 
+                                   onchange="toggleCompare(${hotel.id})"
+                                   class="w-5 h-5 mt-2 text-purple-600 rounded">
+                        `
+                            : ""
+                        }
+                        <div class="text-5xl">${hotel.image}</div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-bold text-lg text-gray-800">${
+                                      hotel.name
+                                    }</h3>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <div class="flex items-center gap-1 text-yellow-500">
+                                            <span>⭐</span>
+                                            <span class="text-sm font-medium text-gray-700">${
+                                              hotel.rating
+                                            }</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500">(${
+                                          hotel.reviews
+                                        } reviews)</span>
+                                        ${availabilityBadge}
+                                    </div>
+                                    ${
+                                      hotel.distance
+                                        ? `<div class="text-xs text-gray-500 mt-1">📍 ${hotel.distance}</div>`
+                                        : ""
+                                    }
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-purple-600">$${
+                                      hotel.price
+                                    }</div>
+                                    <div class="text-xs text-gray-500">per night</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">${
+                              hotel.description
+                            }</p>
+                            ${
+                              amenitiesHTML
+                                ? `<div class="text-sm mb-3">${amenitiesHTML}</div>`
+                                : ""
+                            }
+                            <div class="flex gap-2 flex-wrap">
+                                ${
+                                  !compareMode
+                                    ? `
+                                    <button onclick="handleHotelSelect(${hotel.id})" class="px-3 py-1 bg-purple-500 text-white rounded-full text-xs hover:bg-purple-600 transition-all">
+                                        Select
+                                    </button>
+                                `
+                                    : ""
+                                }
+                                <button onclick="showReviews(${
+                                  hotel.id
+                                })" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs hover:bg-blue-200 transition-all">
+                                    📖 Read Reviews
+                                </button>
+                            </div>
+                            <div id="selected-badge-${
+                              hotel.id
+                            }" class="hidden items-center gap-2 text-purple-600 text-sm font-medium mt-2">
+                                <span>💜</span>
+                                <span>You picked this one!</span>
+                            </div>
+                            <div id="reviews-${
+                              hotel.id
+                            }" class="hidden mt-3"></div>
+                        </div>
+                    </div>
+                `;
+          hotelsDiv.appendChild(hotelCard);
+        });
+
+        // Show action buttons
+        if (!compareMode) {
+          showActionButtons();
+        } else {
+          showCompareActionButtons();
+        }
+
+        document.getElementById("helperText").classList.remove("hidden");
+        scrollToBottom();
+      }
+
+      function showActionButtons() {
+        const hotelsDiv = document.getElementById("afterHotelsContainer");
+
+        // Remove existing buttons if they exist
+        const existingButtons = document.getElementById("actionButtons");
+        if (existingButtons) {
+          existingButtons.remove();
+        }
+
+        // Add action buttons
+        const buttonDiv = document.createElement("div");
+        buttonDiv.id = "actionButtons";
+        buttonDiv.className = "mt-6 text-center animate-fadeIn space-y-3";
+        buttonDiv.innerHTML = `
+                <div class="flex gap-3 justify-center flex-wrap">
+                    <button onclick="showMoreOptions()" class="px-6 py-2 bg-white border-2 border-purple-400 text-purple-600 rounded-full hover:bg-purple-50 hover:shadow-lg transition-all font-semibold">
+                        See Other Options ✨
+                    </button>
+                    <button onclick="enterCompareMode()" class="px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 hover:shadow-lg transition-all font-semibold">
+                        Compare Hotels 🔍
+                    </button>
+                    <button onclick="showFilterModal()" class="px-6 py-2 bg-purple-500 text-white rounded-full hover:bg-purple-600 hover:shadow-lg transition-all font-semibold">
+                        Apply Filters 🎯
+                    </button>
+                </div>
+                <p class="text-sm text-gray-500">Want to explore more hotels or compare options? Click above!</p>
+            `;
+        hotelsDiv.appendChild(buttonDiv);
+      }
+
+      function showCompareActionButtons() {
+        const hotelsDiv = document.getElementById("afterHotelsContainer");
+
+        const existingButtons = document.getElementById("actionButtons");
+        if (existingButtons) {
+          existingButtons.remove();
+        }
+
+        const buttonDiv = document.createElement("div");
+        buttonDiv.id = "actionButtons";
+        buttonDiv.className = "mt-6 text-center animate-fadeIn space-y-3";
+        buttonDiv.innerHTML = `
+                <div class="flex gap-3 justify-center flex-wrap">
+                    <button onclick="compareSelected()" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full hover:shadow-lg transition-all font-bold">
+                        Compare Selected (${hotelsToCompare.length}/2) 🔍
+                    </button>
+                    <button onclick="exitCompareMode()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-all font-semibold">
+                        Cancel
+                    </button>
+                </div>
+                <p class="text-sm text-gray-600">Select 2 hotels to compare side by side</p>
+            `;
+        hotelsDiv.appendChild(buttonDiv);
+      }
+
+      function showReviews(hotelId) {
+        const hotel = allHotels.find((h) => h.id === hotelId);
+
+        // Open in modal instead of inline
+        document.getElementById(
+          "modalTitle"
+        ).textContent = `${hotel.name} - Guest Reviews`;
+        document.getElementById("modalSubtitle").textContent =
+          "See what other travelers are saying!";
+        document.getElementById("bookingModal").classList.remove("hidden");
+
+        const modalContent = document.getElementById("modalContent");
+        modalContent.innerHTML = `
+                <div class="space-y-4">
+                    <!-- Hotel Header -->
+                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200 text-center">
+                        <div class="text-4xl mb-2">${hotel.image}</div>
+                        <h3 class="font-bold text-lg text-gray-800">${
+                          hotel.name
+                        }</h3>
+                        <div class="flex items-center justify-center gap-2 mt-2">
+                            <span class="text-yellow-500 text-2xl">⭐</span>
+                            <span class="text-xl font-bold text-gray-700">${
+                              hotel.rating
+                            }</span>
+                            <span class="text-sm text-gray-500">(${
+                              hotel.reviews
+                            } reviews)</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Reviews -->
+                    <div class="space-y-3 max-h-[400px] overflow-y-auto">
+                        ${hotel.userReviews
+                          .map(
+                            (review) => `
+                            <div class="bg-white rounded-lg p-4 border-2 border-blue-100 hover:border-blue-300 transition-all">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="font-semibold text-gray-800">${
+                                      review.name
+                                    }</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-yellow-500">${"⭐".repeat(
+                                          review.rating
+                                        )}</span>
+                                        <span class="text-xs text-gray-500">${
+                                          review.date
+                                        }</span>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-600 italic">"${
+                                  review.comment
+                                }"</p>
+                            </div>
+                        `
+                          )
+                          .join("")}
+                    </div>
+                    
+                    <!-- Close Button -->
+                    <div class="text-center pt-4">
+                        <button onclick="closeModal()" class="px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:shadow-lg transition-all font-bold">
+                            Close Reviews
+                        </button>
+                    </div>
+                </div>
+            `;
+      }
+
+      function hideReviews(hotelId) {
+        // No longer needed as reviews open in modal
+      }
+
+      // New function to re-render existing hotels (no randomization)
+      function renderExistingHotels() {
+        const hotelsDiv = document.getElementById("afterHotelsContainer");
+
+        // Remove existing hotel cards and action buttons only
+        const existingCards = hotelsDiv.querySelectorAll('[id^="hotel-"]');
+        existingCards.forEach((card) => card.remove());
+
+        const actionButtons = document.getElementById("actionButtons");
+        if (actionButtons) {
+          actionButtons.remove();
+        }
+
+        // Re-render the same hotels that were already displayed
+        displayedHotels.forEach((hotel) => {
+          const hotelCard = document.createElement("div");
+          hotelCard.id = `hotel-${hotel.id}`;
+          hotelCard.className =
+            "border-2 rounded-xl p-4 transition-all hover:shadow-lg border-gray-200 hover:border-purple-300 mt-4 animate-fadeIn";
+
+          // Amenities display
+          const amenityIcons = {
+            wifi: "📶",
+            parking: "🅿️",
+            breakfast: "🍳",
+            pool: "🏊",
+            gym: "💪",
+            spa: "🧖",
+            beachfront: "🏖️",
+            kids: "👶",
+            fireplace: "🔥",
+            lake: "🌊",
+            garden: "🌸",
+            art: "🎨",
+            tech: "💻",
+            workspace: "🖥️",
+            valet: "🚗",
+            concierge: "🎩",
+            skybar: "🍸",
+            river: "🌊",
+            hiking: "🥾",
+          };
+
+          const amenityNames = {
+            wifi: "Free Wi-Fi",
+            parking: "Parking Available",
+            breakfast: "Free Breakfast",
+            pool: "Swimming Pool",
+            gym: "Fitness Center",
+            spa: "Spa Services",
+            beachfront: "Beachfront Access",
+            kids: "Kid-Friendly",
+            fireplace: "Fireplace",
+            lake: "Lake Access",
+            garden: "Garden",
+            art: "Art Gallery",
+            tech: "Tech Amenities",
+            workspace: "Work Desk / Co-Working Friendly",
+            valet: "Valet Parking",
+            concierge: "Concierge Service",
+            skybar: "Sky Bar",
+            river: "River View",
+            hiking: "Hiking Trails",
+          };
+
+          let amenitiesHTML = "";
+          if (hotel.amenities) {
+            amenitiesHTML = hotel.amenities
+              .slice(0, 4)
+              .map(
+                (a) => `
+                        <span class="amenity-icon-wrapper">
+                            <span class="amenity-icon" tabindex="0">${
+                              amenityIcons[a] || "✓"
+                            }</span>
+                            <span class="amenity-tooltip">${
+                              amenityNames[a] || a
+                            }</span>
+                        </span>
+                    `
+              )
+              .join("");
+          }
+
+          // Availability badge
+          let availabilityBadge = "";
+          if (hotel.availability === "Available") {
+            availabilityBadge =
+              '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">✓ Available</span>';
+          } else if (hotel.availability === "Limited") {
+            availabilityBadge =
+              '<span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">⚠️ Limited</span>';
+          } else {
+            availabilityBadge =
+              '<span class="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full">✗ Sold Out</span>';
+          }
+
+          hotelCard.innerHTML = `
+                    <div class="flex items-start gap-4">
+                        ${
+                          compareMode
+                            ? `
+                            <input type="checkbox" 
+                                   id="compare-${hotel.id}" 
+                                   onchange="toggleCompare(${hotel.id})"
+                                   ${
+                                     hotelsToCompare.includes(hotel.id)
+                                       ? "checked"
+                                       : ""
+                                   }
+                                   class="w-5 h-5 mt-2 text-purple-600 rounded">
+                        `
+                            : ""
+                        }
+                        <div class="text-5xl">${hotel.image}</div>
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h3 class="font-bold text-lg text-gray-800">${
+                                      hotel.name
+                                    }</h3>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <div class="flex items-center gap-1 text-yellow-500">
+                                            <span>⭐</span>
+                                            <span class="text-sm font-medium text-gray-700">${
+                                              hotel.rating
+                                            }</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500">(${
+                                          hotel.reviews
+                                        } reviews)</span>
+                                        ${availabilityBadge}
+                                    </div>
+                                    ${
+                                      hotel.distance
+                                        ? `<div class="text-xs text-gray-500 mt-1">📍 ${hotel.distance}</div>`
+                                        : ""
+                                    }
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-2xl font-bold text-purple-600">${
+                                      hotel.price
+                                    }</div>
+                                    <div class="text-xs text-gray-500">per night</div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-2">${
+                              hotel.description
+                            }</p>
+                            ${
+                              amenitiesHTML
+                                ? `<div class="text-sm mb-3">${amenitiesHTML}</div>`
+                                : ""
+                            }
+                            <div class="flex gap-2 flex-wrap">
+                                ${
+                                  !compareMode
+                                    ? `
+                                    <button onclick="handleHotelSelect(${hotel.id})" class="px-3 py-1 bg-purple-500 text-white rounded-full text-xs hover:bg-purple-600 transition-all">
+                                        Select
+                                    </button>
+                                `
+                                    : ""
+                                }
+                                <button onclick="showReviews(${
+                                  hotel.id
+                                })" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs hover:bg-blue-200 transition-all">
+                                    📖 Read Reviews
+                                </button>
+                            </div>
+                            <div id="selected-badge-${
+                              hotel.id
+                            }" class="hidden items-center gap-2 text-purple-600 text-sm font-medium mt-2">
+                                <span>💜</span>
+                                <span>You picked this one!</span>
+                            </div>
+                            <div id="reviews-${
+                              hotel.id
+                            }" class="hidden mt-3"></div>
+                        </div>
+                    </div>
+                `;
+          hotelsDiv.appendChild(hotelCard);
+        });
+
+        // Show appropriate action buttons
+        if (!compareMode) {
+          showActionButtons();
+        } else {
+          showCompareActionButtons();
+        }
+      }
+
+      function enterCompareMode() {
+        compareMode = true;
+        hotelsToCompare = [];
+        addMessage(
+          "assistant",
+          "Great! Now select up to 2 hotels to compare side by side. Just check the boxes next to the hotels you'd like to compare! 🔍",
+          "afterHotelsContainer"
+        );
+
+        // Re-render existing hotels with checkboxes (DON'T get new random hotels)
+        renderExistingHotels();
+      }
+
+      function exitCompareMode() {
+        compareMode = false;
+        hotelsToCompare = [];
+
+        addMessage(
+          "assistant",
+          "No problem! Back to browsing mode. Here are the same options! 😊",
+          "afterHotelsContainer"
+        );
+
+        // Re-render existing hotels without checkboxes (DON'T get new random hotels)
+        renderExistingHotels();
+      }
+
+      function toggleCompare(hotelId) {
+        const checkbox = document.getElementById(`compare-${hotelId}`);
+        const index = hotelsToCompare.indexOf(hotelId);
+
+        if (checkbox.checked && index === -1) {
+          if (hotelsToCompare.length < 2) {
+            hotelsToCompare.push(hotelId);
+          } else {
+            checkbox.checked = false;
+            addMessage(
+              "assistant",
+              "You can only compare 2 hotels at a time! Please uncheck one first. 😊",
+              "afterHotelsContainer"
+            );
+          }
+        } else if (!checkbox.checked && index !== -1) {
+          hotelsToCompare.splice(index, 1);
+        }
+
+        // Update button
+        showCompareActionButtons();
+      }
+
+      function compareSelected() {
+        if (hotelsToCompare.length !== 2) {
+          addMessage(
+            "assistant",
+            "Please select exactly 2 hotels to compare! 😊",
+            "afterHotelsContainer"
+          );
+          return;
+        }
+
+        const hotel1 = allHotels.find((h) => h.id === hotelsToCompare[0]);
+        const hotel2 = allHotels.find((h) => h.id === hotelsToCompare[1]);
+
+        showComparisonModal(hotel1, hotel2);
+      }
+
+      function showComparisonModal(hotel1, hotel2) {
+        document.getElementById("modalTitle").textContent = "Hotel Comparison";
+        document.getElementById("modalSubtitle").textContent =
+          "Here's a side-by-side comparison to help you decide!";
+        document.getElementById("bookingModal").classList.remove("hidden");
+
+        const amenityIcons = {
+          wifi: "📶 WiFi",
+          parking: "🅿️ Parking",
+          breakfast: "🍳 Breakfast",
+          pool: "🏊 Pool",
+          gym: "💪 Gym",
+          spa: "🧖 Spa",
+          beachfront: "🏖️ Beach",
+          kids: "👶 Kid-friendly",
+          fireplace: "🔥 Fireplace",
+          lake: "🌊 Lake",
+          garden: "🌸 Garden",
+          art: "🎨 Art",
+          tech: "💻 Tech",
+          workspace: "🖥️ Workspace",
+          valet: "🚗 Valet",
+          concierge: "🎩 Concierge",
+          skybar: "🍸 Sky Bar",
+          river: "🌊 River",
+          hiking: "🥾 Hiking",
+        };
+
+        const modalContent = document.getElementById("modalContent");
+        modalContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Hotel Headers -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200 text-center">
+                            <div class="text-4xl mb-2">${hotel1.image}</div>
+                            <h3 class="font-bold text-lg text-gray-800">${
+                              hotel1.name
+                            }</h3>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border-2 border-blue-200 text-center">
+                            <div class="text-4xl mb-2">${hotel2.image}</div>
+                            <h3 class="font-bold text-lg text-gray-800">${
+                              hotel2.name
+                            }</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Price Comparison -->
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h4 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <span>💰</span>
+                            <span>Price per Night</span>
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold ${
+                                  hotel1.price < hotel2.price
+                                    ? "text-green-600"
+                                    : "text-purple-600"
+                                }">
+                                    $${hotel1.price}
+                                </div>
+                                ${
+                                  hotel1.price < hotel2.price
+                                    ? '<div class="text-xs text-green-600 mt-1">💚 Better Value</div>'
+                                    : ""
+                                }
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold ${
+                                  hotel2.price < hotel1.price
+                                    ? "text-green-600"
+                                    : "text-purple-600"
+                                }">
+                                    $${hotel2.price}
+                                </div>
+                                ${
+                                  hotel2.price < hotel1.price
+                                    ? '<div class="text-xs text-green-600 mt-1">💚 Better Value</div>'
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                        <div class="text-center mt-2 text-sm text-gray-600">
+                            Price difference: $${Math.abs(
+                              hotel1.price - hotel2.price
+                            )} per night
+                        </div>
+                    </div>
+                    
+                    <!-- Rating Comparison -->
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h4 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <span>⭐</span>
+                            <span>Guest Rating</span>
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold ${
+                                  hotel1.rating > hotel2.rating
+                                    ? "text-yellow-600"
+                                    : "text-gray-600"
+                                }">
+                                    ${hotel1.rating} ⭐
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">${
+                                  hotel1.reviews
+                                } reviews</div>
+                                ${
+                                  hotel1.rating > hotel2.rating
+                                    ? '<div class="text-xs text-yellow-600 mt-1">🌟 Higher Rated</div>'
+                                    : ""
+                                }
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold ${
+                                  hotel2.rating > hotel1.rating
+                                    ? "text-yellow-600"
+                                    : "text-gray-600"
+                                }">
+                                    ${hotel2.rating} ⭐
+                                </div>
+                                <div class="text-xs text-gray-500 mt-1">${
+                                  hotel2.reviews
+                                } reviews</div>
+                                ${
+                                  hotel2.rating > hotel1.rating
+                                    ? '<div class="text-xs text-yellow-600 mt-1">🌟 Higher Rated</div>'
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Amenities Comparison -->
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h4 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <span>✨</span>
+                            <span>Amenities</span>
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1">
+                                ${
+                                  hotel1.amenities
+                                    ? hotel1.amenities
+                                        .map(
+                                          (a) => `
+                                    <div class="text-sm ${
+                                      hotel2.amenities &&
+                                      hotel2.amenities.includes(a)
+                                        ? "text-gray-600"
+                                        : "text-purple-600 font-semibold"
+                                    }">
+                                        ${amenityIcons[a] || "✓ " + a}
+                                    </div>
+                                `
+                                        )
+                                        .join("")
+                                    : '<div class="text-sm text-gray-400">No amenities listed</div>'
+                                }
+                            </div>
+                            <div class="space-y-1">
+                                ${
+                                  hotel2.amenities
+                                    ? hotel2.amenities
+                                        .map(
+                                          (a) => `
+                                    <div class="text-sm ${
+                                      hotel1.amenities &&
+                                      hotel1.amenities.includes(a)
+                                        ? "text-gray-600"
+                                        : "text-blue-600 font-semibold"
+                                    }">
+                                        ${amenityIcons[a] || "✓ " + a}
+                                    </div>
+                                `
+                                        )
+                                        .join("")
+                                    : '<div class="text-sm text-gray-400">No amenities listed</div>'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Location Comparison -->
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <h4 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <span>📍</span>
+                            <span>Location</span>
+                        </h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div class="text-center">
+                                ${hotel1.distance || "Location not specified"}
+                            </div>
+                            <div class="text-center">
+                                ${hotel2.distance || "Location not specified"}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pros & Cons -->
+                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200">
+                        <h4 class="font-bold text-gray-700 mb-3 flex items-center gap-2">
+                            <span>💭</span>
+                            <span>My Recommendation</span>
+                        </h4>
+                        <div class="space-y-3 text-sm text-gray-700">
+                            ${
+                              hotel1.price < hotel2.price
+                                ? `<p>💰 <strong>${
+                                    hotel1.name
+                                  }</strong> offers better value at $${
+                                    hotel1.price
+                                  } per night - that's $${
+                                    hotel2.price - hotel1.price
+                                  } savings!</p>`
+                                : `<p>💰 <strong>${
+                                    hotel2.name
+                                  }</strong> offers better value at $${
+                                    hotel2.price
+                                  } per night - that's $${
+                                    hotel1.price - hotel2.price
+                                  } savings!</p>`
+                            }
+                            ${
+                              hotel1.rating > hotel2.rating
+                                ? `<p>⭐ <strong>${hotel1.name}</strong> has a higher guest rating (${hotel1.rating} vs ${hotel2.rating}), so guests tend to love it more!</p>`
+                                : hotel2.rating > hotel1.rating
+                                ? `<p>⭐ <strong>${hotel2.name}</strong> has a higher guest rating (${hotel2.rating} vs ${hotel1.rating}), so guests tend to love it more!</p>`
+                                : "<p>⭐ Both hotels have the same excellent rating! You can't go wrong with either choice.</p>"
+                            }
+                            <p>✨ Both hotels have unique features that make them special. Choose based on what matters most to you - budget, amenities, or location! I'm here to help with whatever you decide. 💜</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="selectFromComparison(${
+                          hotel1.id
+                        })" class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:shadow-lg transition-all font-bold text-sm">
+                            Choose ${hotel1.name}
+                        </button>
+                        <button onclick="selectFromComparison(${
+                          hotel2.id
+                        })" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full hover:shadow-lg transition-all font-bold text-sm">
+                            Choose ${hotel2.name}
+                        </button>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button onclick="closeModal()" class="text-sm text-gray-500 hover:text-purple-600 transition-all underline">
+                            Close Comparison
+                        </button>
+                    </div>
+                </div>
+            `;
+      }
+
+      function selectFromComparison(hotelId) {
+        closeModal();
+        compareMode = false;
+        hotelsToCompare = [];
+        handleHotelSelect(hotelId);
+      }
+
+      function showFilterModal() {
+        document.getElementById("modalTitle").textContent = "Apply Filters";
+        document.getElementById("modalSubtitle").textContent =
+          "Help me find exactly what you're looking for!";
+        document.getElementById("bookingModal").classList.remove("hidden");
+
+        const modalContent = document.getElementById("modalContent");
+        modalContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Price Filter -->
+                    <div class="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                            💰 Maximum Price per Night
+                        </label>
+                        <select id="filterPrice" class="w-full px-4 py-2 border-2 border-purple-300 rounded-full focus:outline-none focus:border-purple-500">
+                            <option value="">Any price</option>
+                            <option value="100" ${
+                              filters.maxPrice === 100 ? "selected" : ""
+                            }>Under $100</option>
+                            <option value="150" ${
+                              filters.maxPrice === 150 ? "selected" : ""
+                            }>Under $150</option>
+                            <option value="200" ${
+                              filters.maxPrice === 200 ? "selected" : ""
+                            }>Under $200</option>
+                            <option value="250" ${
+                              filters.maxPrice === 250 ? "selected" : ""
+                            }>Under $250</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Rating Filter -->
+                    <div class="bg-yellow-50 rounded-xl p-4 border-2 border-yellow-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                            ⭐ Minimum Rating
+                        </label>
+                        <select id="filterRating" class="w-full px-4 py-2 border-2 border-yellow-300 rounded-full focus:outline-none focus:border-yellow-500">
+                            <option value="">Any rating</option>
+                            <option value="4.0" ${
+                              filters.minRating === 4.0 ? "selected" : ""
+                            }>4.0+ ⭐</option>
+                            <option value="4.5" ${
+                              filters.minRating === 4.5 ? "selected" : ""
+                            }>4.5+ ⭐⭐</option>
+                            <option value="4.8" ${
+                              filters.minRating === 4.8 ? "selected" : ""
+                            }>4.8+ ⭐⭐⭐</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Category Filter -->
+                    <div class="bg-pink-50 rounded-xl p-4 border-2 border-pink-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                            🏨 Hotel Category
+                        </label>
+                        <select id="filterCategory" class="w-full px-4 py-2 border-2 border-pink-300 rounded-full focus:outline-none focus:border-pink-500">
+                            <option value="">All categories</option>
+                            <option value="budget" ${
+                              filters.category === "budget" ? "selected" : ""
+                            }>Budget-Friendly 💰</option>
+                            <option value="luxury" ${
+                              filters.category === "luxury" ? "selected" : ""
+                            }>Luxury 👑</option>
+                            <option value="business" ${
+                              filters.category === "business" ? "selected" : ""
+                            }>Business 💼</option>
+                            <option value="scenic" ${
+                              filters.category === "scenic" ? "selected" : ""
+                            }>Scenic Views 🏞️</option>
+                            <option value="boutique" ${
+                              filters.category === "boutique" ? "selected" : ""
+                            }>Boutique 🎨</option>
+                            <option value="family" ${
+                              filters.category === "family" ? "selected" : ""
+                            }>Family-Friendly 👨‍👩‍👧‍👦</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Amenities Filter -->
+                    <div class="bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                            ✨ Must-Have Amenities
+                        </label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="amenity-wifi" value="wifi" ${
+                                  filters.amenities.includes("wifi")
+                                    ? "checked"
+                                    : ""
+                                } class="w-4 h-4 text-purple-600 rounded">
+                                <span class="text-sm">📶 Free WiFi</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="amenity-parking" value="parking" ${
+                                  filters.amenities.includes("parking")
+                                    ? "checked"
+                                    : ""
+                                } class="w-4 h-4 text-purple-600 rounded">
+                                <span class="text-sm">🅿️ Parking</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="amenity-breakfast" value="breakfast" ${
+                                  filters.amenities.includes("breakfast")
+                                    ? "checked"
+                                    : ""
+                                } class="w-4 h-4 text-purple-600 rounded">
+                                <span class="text-sm">🍳 Breakfast</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="amenity-pool" value="pool" ${
+                                  filters.amenities.includes("pool")
+                                    ? "checked"
+                                    : ""
+                                } class="w-4 h-4 text-purple-600 rounded">
+                                <span class="text-sm">🏊 Pool</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="amenity-gym" value="gym" ${
+                                  filters.amenities.includes("gym")
+                                    ? "checked"
+                                    : ""
+                                } class="w-4 h-4 text-purple-600 rounded">
+                                <span class="text-sm">💪 Gym</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" id="amenity-spa" value="spa" ${
+                                  filters.amenities.includes("spa")
+                                    ? "checked"
+                                    : ""
+                                } class="w-4 h-4 text-purple-600 rounded">
+                                <span class="text-sm">🧖 Spa</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="space-y-3">
+                        <button onclick="applyFilterSettings()" class="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full hover:shadow-xl transition-all font-bold text-lg">
+                            Apply Filters 🎯
+                        </button>
+                        <button onclick="clearFilters()" class="w-full px-6 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-all font-semibold">
+                            Clear All Filters
+                        </button>
+                    </div>
+                </div>
+            `;
+      }
+
+      function applyFilterSettings() {
+        const price = document.getElementById("filterPrice").value;
+        const rating = document.getElementById("filterRating").value;
+        const category = document.getElementById("filterCategory").value;
+
+        filters.maxPrice = price ? parseInt(price) : null;
+        filters.minRating = rating ? parseFloat(rating) : null;
+        filters.category = category || null;
+
+        filters.amenities = [];
+        ["wifi", "parking", "breakfast", "pool", "gym", "spa"].forEach(
+          (amenity) => {
+            const checkbox = document.getElementById(`amenity-${amenity}`);
+            if (checkbox && checkbox.checked) {
+              filters.amenities.push(amenity);
+            }
+          }
+        );
+
+        closeModal();
+
+        let filterSummary = "Perfect! I'll find hotels";
+        const filterParts = [];
+        if (filters.maxPrice) filterParts.push(`under $${filters.maxPrice}`);
+        if (filters.minRating)
+          filterParts.push(`rated ${filters.minRating}+ stars`);
+        if (filters.category)
+          filterParts.push(`in the ${filters.category} category`);
+        if (filters.amenities.length > 0)
+          filterParts.push(`with ${filters.amenities.join(", ")}`);
+
+        if (filterParts.length > 0) {
+          filterSummary += " " + filterParts.join(", ");
+        }
+        filterSummary += "! Let me search for you... 🔍";
+
+        addMessage("assistant", filterSummary, "afterHotelsContainer");
+
+        setTimeout(() => {
+          document.getElementById("afterHotelsContainer").innerHTML = "";
+          displayedHotels = [];
+          previouslyShownIds = [];
+
+          const filteredCount = applyFilters(allHotels).length;
+          if (filteredCount > 0) {
+            addMessage(
+              "assistant",
+              `Great news! I found ${filteredCount} hotel${
+                filteredCount > 1 ? "s" : ""
+              } matching your criteria! Here are some top picks: ✨`,
+              "afterHotelsContainer"
+            );
+            showHotels();
+          } else {
+            addMessage(
+              "assistant",
+              "Hmm, I couldn't find any hotels matching all those criteria. Would you like to adjust your filters? 😊",
+              "afterHotelsContainer"
+            );
+            const inputArea = document.getElementById("inputArea");
+            inputArea.innerHTML = `
+                        <div class="text-center">
+                            <button onclick="showFilterModal()" class="px-6 py-3 bg-purple-500 text-white rounded-full hover:shadow-lg transition-all font-bold">
+                                Adjust Filters 🎯
+                            </button>
+                        </div>
+                    `;
+          }
+        }, 1000);
+      }
+
+      function clearFilters() {
+        filters = {
+          maxPrice: null,
+          minRating: null,
+          amenities: [],
+          category: null,
+        };
+        closeModal();
+        addMessage(
+          "assistant",
+          "All filters cleared! Let me show you all available options again. 😊",
+          "afterHotelsContainer"
+        );
+
+        setTimeout(() => {
+          document.getElementById("afterHotelsContainer").innerHTML = "";
+          displayedHotels = [];
+          previouslyShownIds = [];
+          showHotels();
+        }, 800);
+      }
+
+      function closeModal() {
+        document.getElementById("bookingModal").classList.add("hidden");
+      }
+
+      let numRooms = 1;
+      let numGuests = 2;
+      let extras = {
+        breakfast: false,
+        extraBed: false,
+        airportPickup: false,
+      };
+
+      function handleHotelSelect(hotelId) {
+        const hotel =
+          typeof hotelId === "number"
+            ? allHotels.find((h) => h.id === hotelId)
+            : hotelId;
+        selectedHotel = hotel;
+
+        // Update UI to show selection
+        displayedHotels.forEach((h) => {
+          const card = document.getElementById(`hotel-${h.id}`);
+          const badge = document.getElementById(`selected-badge-${h.id}`);
+          if (card && badge) {
+            if (h.id === hotel.id) {
+              card.className =
+                "border-2 rounded-xl p-4 transition-all hover:shadow-lg border-purple-500 bg-purple-50 mt-4 animate-fadeIn";
+              badge.classList.remove("hidden");
+              badge.classList.add("flex");
+            } else {
+              card.className =
+                "border-2 rounded-xl p-4 transition-all hover:shadow-lg border-gray-200 hover:border-purple-300 mt-4 animate-fadeIn";
+              badge.classList.remove("flex");
+              badge.classList.add("hidden");
+            }
+          }
+        });
+
+        const priceResponses = {
+          budget:
+            "Smart choice! I love that you're being budget-conscious while not compromising on comfort! 🎯",
+          luxury:
+            "Ooh, treating yourself! You deserve this luxury experience! 👑",
+          business:
+            "Great pick! Perfect for getting things done while staying comfortable! 💼",
+          scenic: "Wonderful pick! You'll love the breathtaking views! 🏞️",
+          boutique: "Fantastic choice! Such unique style and character! 🎨",
+          family: "Perfect for family fun! Everyone will have a great time! 🎡",
+        };
+
+        // Remove action buttons
+        const actionButtons = document.getElementById("actionButtons");
+        if (actionButtons) {
+          actionButtons.remove();
+        }
+
+        scrollToBottom();
+
+        setTimeout(() => {
+          addMessage(
+            "assistant",
+            `Excellent choice! ${hotel.name} is a wonderful option! ${
+              priceResponses[hotel.type] || priceResponses.budget
+            }`,
+            "afterHotelsContainer"
+          );
+
+          setTimeout(() => {
+            addMessage(
+              "assistant",
+              `This hotel has a ${hotel.rating} ⭐ rating from ${hotel.reviews} happy travelers! People really love it there! 😊`,
+              "afterHotelsContainer"
+            );
+
+            setTimeout(() => {
+              const features = {
+                budget:
+                  "They offer great amenities including free Wi-Fi and comfortable beds!",
+                luxury:
+                  "You'll enjoy spa access, gourmet dining, and stunning views!",
+                business:
+                  "Perfect facilities including a business center and meeting rooms!",
+                scenic:
+                  "Amazing location with nature access and outdoor activities!",
+                boutique:
+                  "Unique design and personalized service make it special!",
+                family:
+                  "Great family amenities with pools, games, and kid-friendly activities!",
+              };
+              addMessage(
+                "assistant",
+                features[hotel.type] || features.budget,
+                "afterHotelsContainer"
+              );
+
+              // Show availability confirmation
+              setTimeout(() => {
+                if (hotel.availability === "Available") {
+                  addMessage(
+                    "assistant",
+                    "Good news! This hotel has rooms available for your dates! ✅",
+                    "afterHotelsContainer"
+                  );
+                } else if (hotel.availability === "Limited") {
+                  addMessage(
+                    "assistant",
+                    "Quick heads up - this hotel has limited availability! You might want to book soon. ⏰",
+                    "afterHotelsContainer"
+                  );
+                }
+
+                setTimeout(() => {
+                  addMessage(
+                    "assistant",
+                    "Ready to proceed with your booking? Let me help you finalize the details! 💙",
+                    "afterHotelsContainer"
+                  );
+                  showBookButton();
+                }, 1000);
+              }, 1500);
+            }, 1500);
+          }, 1000);
+        }, 500);
+
+        document.getElementById("helperText").classList.add("hidden");
+      }
+
+      function showBookButton() {
+        const inputArea = document.getElementById("inputArea");
+        inputArea.innerHTML = `
+                <div class="flex gap-3 items-center justify-center">
+                    <button onclick="handleBookNow()" class="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:shadow-lg transition-all font-bold text-lg shadow-md">
+                        Book Now! 🎉
+                    </button>
+                    <button onclick="showMoreOptions()" class="px-6 py-4 bg-white border-2 border-purple-300 text-purple-600 rounded-full hover:bg-purple-50 transition-all font-medium">
+                        See Other Options
+                    </button>
+                </div>
+            `;
+      }
+
+      function handleBookNow() {
+        addMessage(
+          "assistant",
+          `Perfect! Let me help you finalize your booking at ${selectedHotel.name}! 🎊`,
+          "afterHotelsContainer"
+        );
+
+        setTimeout(() => {
+          addMessage(
+            "assistant",
+            "Let's finalize your booking! I'll open our booking form for you... 🎉",
+            "afterHotelsContainer"
+          );
+
+          setTimeout(() => {
+            showBookingModal();
+          }, 1000);
+        }, 800);
+      }
+
+      function changeRooms(delta) {
+        numRooms = Math.max(1, Math.min(5, numRooms + delta));
+        document.getElementById("roomsDisplay").textContent = numRooms;
+        updatePriceSummary();
+      }
+
+      function changeGuests(delta) {
+        numGuests = Math.max(1, Math.min(10, numGuests + delta));
+        document.getElementById("guestsDisplay").textContent = numGuests;
+        updatePriceSummary();
+      }
+
+      function toggleExtra(type) {
+        extras[type] = document.getElementById(type).checked;
+        updatePriceSummary();
+      }
+
+      function calculateDays() {
+        if (!checkIn || !checkOut) return 1;
+        const start = new Date(checkIn);
+        const end = new Date(checkOut);
+        const days = Math.max(
+          1,
+          Math.ceil((end - start) / (1000 * 60 * 60 * 24))
+        );
+        return days;
+      }
+
+      function updatePriceSummary() {
+        const days = calculateDays();
+        let total = selectedHotel.price * numRooms * days;
+        let extraCostsHTML = "";
+
+        if (extras.breakfast) {
+          const breakfastCost = 15 * numGuests * days;
+          total += breakfastCost;
+          extraCostsHTML += `<div class="flex justify-between"><span>🍳 Breakfast</span><span>+$${breakfastCost}</span></div>`;
+        }
+        if (extras.extraBed) {
+          const bedCost = 25 * days;
+          total += bedCost;
+          extraCostsHTML += `<div class="flex justify-between"><span>🛏️ Extra Bed</span><span>+$${bedCost}</span></div>`;
+        }
+        if (extras.airportPickup) {
+          total += 40;
+          extraCostsHTML += `<div class="flex justify-between"><span>🚗 Airport Pickup</span><span>+$40</span></div>`;
+        }
+
+        document.getElementById("extraCosts").innerHTML = extraCostsHTML;
+        document.getElementById("totalPrice").textContent = `$${total}`;
+      }
+
+      function showBookingModal() {
+        document.getElementById("modalTitle").textContent =
+          "Finalize Your Booking";
+        document.getElementById("modalSubtitle").textContent =
+          "Let's get everything set up for your stay!";
+        document.getElementById("bookingModal").classList.remove("hidden");
+        const modalContent = document.getElementById("modalContent");
+
+        // Reset values
+        numRooms = 1;
+        numGuests = 2;
+        extras = {
+          breakfast: false,
+          extraBed: false,
+          airportPickup: false,
+        };
+
+        modalContent.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Hotel Summary -->
+                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="text-4xl">${selectedHotel.image}</div>
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-800">${selectedHotel.name}</h3>
+                                <p class="text-sm text-gray-600">${checkIn} → ${checkOut}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Number of Rooms -->
+                    <div class="bg-purple-50 rounded-xl p-4 border-2 border-purple-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                            🏨 How many rooms do you need?
+                        </label>
+                        <div class="flex items-center gap-3">
+                            <button onclick="changeRooms(-1)" class="w-10 h-10 bg-white border-2 border-purple-300 rounded-full hover:bg-purple-100 transition-all font-bold text-purple-600">
+                                −
+                            </button>
+                            <div class="flex-1 text-center">
+                                <span id="roomsDisplay" class="text-2xl font-bold text-purple-600">1</span>
+                                <span class="text-sm text-gray-600 ml-2">room(s)</span>
+                            </div>
+                            <button onclick="changeRooms(1)" class="w-10 h-10 bg-white border-2 border-purple-300 rounded-full hover:bg-purple-100 transition-all font-bold text-purple-600">
+                                +
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Number of Guests -->
+                    <div class="bg-pink-50 rounded-xl p-4 border-2 border-pink-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                            👥 How many guests?
+                        </label>
+                        <div class="flex items-center gap-3">
+                            <button onclick="changeGuests(-1)" class="w-10 h-10 bg-white border-2 border-pink-300 rounded-full hover:bg-pink-100 transition-all font-bold text-pink-600">
+                                −
+                            </button>
+                            <div class="flex-1 text-center">
+                                <span id="guestsDisplay" class="text-2xl font-bold text-pink-600">2</span>
+                                <span class="text-sm text-gray-600 ml-2">guest(s)</span>
+                            </div>
+                            <button onclick="changeGuests(1)" class="w-10 h-10 bg-white border-2 border-pink-300 rounded-full hover:bg-pink-100 transition-all font-bold text-pink-600">
+                                +
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Extra Options -->
+                    <div class="bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
+                        <label class="block text-sm font-semibold text-gray-700 mb-3">
+                            ✨ Would you like any extras?
+                        </label>
+                        <div class="space-y-3">
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-all border-2 border-transparent hover:border-blue-300">
+                                <input type="checkbox" id="breakfast" onchange="toggleExtra('breakfast')" class="w-5 h-5 text-purple-600 rounded">
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-800">🍳 Breakfast Included</div>
+                                    <div class="text-xs text-gray-500">Start your day right! (+$15/person/day)</div>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-all border-2 border-transparent hover:border-blue-300">
+                                <input type="checkbox" id="extraBed" onchange="toggleExtra('extraBed')" class="w-5 h-5 text-purple-600 rounded">
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-800">🛏️ Extra Bed</div>
+                                    <div class="text-xs text-gray-500">More space for everyone! (+$25/night)</div>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 bg-white rounded-lg cursor-pointer hover:bg-blue-50 transition-all border-2 border-transparent hover:border-blue-300">
+                                <input type="checkbox" id="airportPickup" onchange="toggleExtra('airportPickup')" class="w-5 h-5 text-purple-600 rounded">
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-800">🚗 Airport Pickup</div>
+                                    <div class="text-xs text-gray-500">Hassle-free arrival! (+$40 one-way)</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Price Summary -->
+                    <div class="bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl p-4 border-2 border-purple-300">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-gray-700 font-medium">Room rate (per night)</span>
+                            <span class="font-bold text-gray-800">$${selectedHotel.price}</span>
+                        </div>
+                        <div id="extraCosts" class="text-sm text-gray-600 mb-2"></div>
+                        <div class="border-t-2 border-purple-300 pt-2 mt-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-bold text-purple-700">Estimated Total</span>
+                                <span id="totalPrice" class="text-2xl font-bold text-purple-600">$${selectedHotel.price}</span>
+                            </div>
+                            <div class="text-xs text-gray-600 mt-1 text-right">For ${numRooms} room(s), ${numGuests} guest(s)</div>
+                        </div>
+                    </div>
+
+                    <!-- Confirm Button -->
+                    <button onclick="confirmBooking()" class="w-full px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full hover:shadow-xl transition-all font-bold text-lg">
+                        Confirm Booking 🎉
+                    </button>
+                </div>
+            `;
+
+        updatePriceSummary();
+      }
+
+      function confirmBooking() {
+        closeModal();
+        const days = calculateDays();
+
+        setTimeout(() => {
+          addMessage(
+            "assistant",
+            `Wonderful! I'm processing your booking now... ✨`,
+            "afterHotelsContainer"
+          );
+
+          setTimeout(() => {
+            addMessage(
+              "assistant",
+              `Perfect! Your reservation is confirmed! 🎊`,
+              "afterHotelsContainer"
+            );
+
+            setTimeout(() => {
+              let extrasText = "";
+              if (extras.breakfast || extras.extraBed || extras.airportPickup) {
+                extrasText = " You're all set with ";
+                const selectedExtras = [];
+                if (extras.breakfast) selectedExtras.push("breakfast");
+                if (extras.extraBed) selectedExtras.push("extra bed");
+                if (extras.airportPickup) selectedExtras.push("airport pickup");
+                extrasText += selectedExtras.join(", ") + "!";
+              }
+
+              addMessage(
+                "assistant",
+                `You're booked at ${
+                  selectedHotel.name
+                } from ${checkIn} to ${checkOut} (${days} night${
+                  days > 1 ? "s" : ""
+                }) for ${numGuests} guest${
+                  numGuests > 1 ? "s" : ""
+                } in ${numRooms} room${
+                  numRooms > 1 ? "s" : ""
+                }.${extrasText} 🏨✨`,
+                "afterHotelsContainer"
+              );
+
+              setTimeout(() => {
+                addMessage(
+                  "assistant",
+                  `We look forward to welcoming you! If you have any questions before your arrival, I'm always here to help. Have a fantastic trip! 🌟💜`,
+                  "afterHotelsContainer"
+                );
+
+                document.getElementById("inputArea").innerHTML = `
+                                <div class="text-center animate-fadeIn space-y-4">
+                                    <div class="text-6xl mb-4">🎉</div>
+                                    <div class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                                        Booking Confirmed!
+                                    </div>
+                                    <div class="text-gray-600 mb-4">Thank you for choosing FriendlyStay!</div>
+                                    <div class="inline-flex items-center gap-2 px-6 py-3 bg-purple-100 rounded-full text-purple-700 font-medium mb-4">
+                                        <span>📧</span>
+                                        <span>Confirmation email sent!</span>
+                                    </div>
+                                    <div class="pt-4">
+                                        <button onclick="startOver()" class="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:shadow-lg transition-all font-bold text-lg">
+                                            Start Over 🔄
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+              }, 1500);
+            }, 1000);
+          }, 1500);
+        }, 500);
+      }
+
+      function startOver() {
+        // Reset all state
+        step = 0;
+        destination = "";
+        checkIn = "";
+        checkOut = "";
+        selectedHotel = null;
+        numRooms = 1;
+        numGuests = 2;
+        extras = {
+          breakfast: false,
+          extraBed: false,
+          airportPickup: false,
+        };
+        displayedHotels = [];
+        previouslyShownIds = [];
+        compareMode = false;
+        hotelsToCompare = [];
+        filters = {
+          maxPrice: null,
+          minRating: null,
+          amenities: [],
+          category: null,
+        };
+
+        // Clear all containers
+        document.getElementById("messagesContainer").innerHTML = "";
+        document.getElementById("hotelsContainer").innerHTML = "";
+        document.getElementById("hotelsContainer").classList.add("hidden");
+        document.getElementById("afterHotelsContainer").innerHTML = "";
+        document.getElementById("inputArea").innerHTML = "";
+        document.getElementById("helperText").classList.add("hidden");
+
+        // Restart the conversation
+        setTimeout(() => {
+          addMessage(
+            "assistant",
+            "Hi there! 👋 I'm Mira, your friendly travel buddy! Ready to help you find another perfect place to stay! ✨"
+          );
+          setTimeout(() => {
+            addMessage(
+              "assistant",
+              "Let's start with the basics - where would you like to go? Tell me your dream destination! 🗺️"
+            );
+            renderInput();
+          }, 1500);
+        }, 500);
+      }
+
+      function showMoreOptions() {
+        // Deselect any currently selected hotel
+        selectedHotel = null;
+
+        // Clear the input area
+        document.getElementById("inputArea").innerHTML = "";
+
+        // Show helper text
+        document.getElementById("helperText").classList.remove("hidden");
+
+        // Show the next set of random hotels
+        setTimeout(() => {
+          showHotels(true);
+        }, 500);
+      }
+
+      function renderInput() {
+        const inputArea = document.getElementById("inputArea");
+
+        if (step === 0) {
+          inputArea.innerHTML = `
+                    <div class="flex gap-2">
+                        <input
+                            type="text"
+                            id="destinationInput"
+                            placeholder="e.g., Paris, Tokyo, New York..."
+                            class="flex-1 px-4 py-3 border-2 border-purple-300 rounded-full focus:outline-none focus:border-purple-500 transition-colors"
+                        />
+                        <button
+                            onclick="handleDestinationSubmit()"
+                            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:shadow-lg transition-all font-medium"
+                        >
+                            Go! ✈️
+                        </button>
+                    </div>
+                `;
+          document.getElementById("destinationInput").focus();
+          document
+            .getElementById("destinationInput")
+            .addEventListener("keypress", (e) => {
+              if (e.key === "Enter") handleDestinationSubmit();
+            });
+        } else if (step === 1) {
+          inputArea.innerHTML = `
+                    <div class="flex gap-2">
+                        <input
+                            type="date"
+                            id="checkInInput"
+                            class="flex-1 px-4 py-3 border-2 border-purple-300 rounded-full focus:outline-none focus:border-purple-500"
+                        />
+                        <button
+                            onclick="handleCheckInSubmit()"
+                            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:shadow-lg transition-all font-medium"
+                        >
+                            Next 👉
+                        </button>
+                    </div>
+                `;
+          document.getElementById("checkInInput").focus();
+        } else if (step === 2) {
+          inputArea.innerHTML = `
+                    <div class="flex gap-2">
+                        <input
+                            type="date"
+                            id="checkOutInput"
+                            class="flex-1 px-4 py-3 border-2 border-purple-300 rounded-full focus:outline-none focus:border-purple-500"
+                        />
+                        <button
+                            onclick="handleCheckOutSubmit()"
+                            class="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:shadow-lg transition-all font-medium"
+                        >
+                            Search! 🔍
+                        </button>
+                    </div>
+                `;
+          document.getElementById("checkOutInput").focus();
+        }
+      }
+
+      function handleDestinationSubmit() {
+        const input = document.getElementById("destinationInput");
+        destination = input.value.trim();
+        if (!destination) return;
+
+        addMessage("user", destination);
+
+        setTimeout(() => {
+          const responses = [
+            `Oh, ${destination}! What an amazing choice! 🎉 I've heard wonderful things about that place!`,
+            `${destination}? You have great taste! I love that spot! 😍`,
+            `Awesome! ${destination} is going to be incredible! 🌟`,
+          ];
+          addMessage(
+            "assistant",
+            responses[Math.floor(Math.random() * responses.length)]
+          );
+
+          setTimeout(() => {
+            addMessage(
+              "assistant",
+              "Now, when would you like to check in? Pick a date that works for you! 📅"
+            );
+            step = 1;
+            renderInput();
+          }, 1500);
+        }, 800);
+      }
+
+      function handleCheckInSubmit() {
+        const inputValue = document.getElementById("checkInInput").value;
+        if (!inputValue) return;
+
+        // Validate check-in date is not in the past
+        const selectedDate = new Date(inputValue);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate < today) {
+          setTimeout(() => {
+            addMessage(
+              "assistant",
+              "Oops! Looks like that date has already passed. Can you pick another one? 😄 I need a date that's today or later!"
+            );
+          }, 500);
+          return;
+        }
+
+        checkIn = inputValue;
+        addMessage("user", `Check-in: ${checkIn}`);
+
+        setTimeout(() => {
+          addMessage(
+            "assistant",
+            "Perfect timing! 👍 And when would you like to check out?"
+          );
+          step = 2;
+          renderInput();
+        }, 800);
+      }
+
+      function handleCheckOutSubmit() {
+        const inputValue = document.getElementById("checkOutInput").value;
+        if (!inputValue) return;
+
+        // Validate check-out date
+        const checkOutDate = new Date(inputValue);
+        const checkInDate = new Date(checkIn);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Check if checkout is in the past
+        if (checkOutDate < today) {
+          setTimeout(() => {
+            addMessage(
+              "assistant",
+              "Hmm, that check-out date has already passed! 🤔 Let's pick a date that's today or later!"
+            );
+          }, 500);
+          return;
+        }
+
+        // Check if checkout is after checkin
+        if (checkOutDate <= checkInDate) {
+          setTimeout(() => {
+            addMessage(
+              "assistant",
+              "Oops! Your check-out date needs to be after your check-in date. Can you pick a later date? 😊"
+            );
+          }, 500);
+          return;
+        }
+
+        checkOut = inputValue;
+        addMessage("user", `Check-out: ${checkOut}`);
+
+        setTimeout(() => {
+          addMessage(
+            "assistant",
+            "Wonderful! Let me check availability and find some great options for you... ✨"
+          );
+
+          setTimeout(() => {
+            addMessage(
+              "assistant",
+              "Great news! I found several hotels with rooms available for your dates! Here are 3 amazing options I think you'll love. Each one has been checked for availability! 💫"
+            );
+            showHotels();
+            step = 3;
+            document.getElementById("inputArea").innerHTML = "";
+          }, 2000);
+        }, 800);
+      }
+
+      // Initialize
+      setTimeout(() => {
+        addMessage(
+          "assistant",
+          "Hi there! 👋 I'm Mira, your friendly travel buddy! I'm so excited to help you find the perfect place to stay! ✨"
+        );
+        setTimeout(() => {
+          addMessage(
+            "assistant",
+            "Let's start with the basics - where would you like to go? Tell me your dream destination! 🗺️"
+          );
+          renderInput();
+        }, 1500);
+      }, 500);
+    </script>
+  </body>
+</html>
