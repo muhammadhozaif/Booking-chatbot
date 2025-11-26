@@ -1,7 +1,7 @@
 ---
 # FriendlyStay — Conversational Hotel Booking
 
-FriendlyStay is a single-page web application that turns hotel booking into a friendly, conversational experience. Powered by **Mira**, an empathetic AI guide, the app uses principles from **CASA (Computers as Social Actors)** to create warm, human-like interactions.
+FriendlyStay is a single-page web application that turns hotel booking into a friendly, conversational experience. Powered by **Mira**, an empathetic  guide, the app uses principles from **CASA (Computers as Social Actors)** to create warm, human-like interactions.
 ---
 
 ## 🌟 Features
